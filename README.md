@@ -43,3 +43,5 @@ For media inquiries or to find out more about theliamforecast.com, please contac
 **Felipe Izidro – Illustrator**
 
 **Tom Alford – Sound Design**
+
+Built using Tailwind v4.1 (https://tailwindcss.com/docs/)
