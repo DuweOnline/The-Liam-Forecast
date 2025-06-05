@@ -1,0 +1,11 @@
+on: push
+name: FTP to server
+uses: ArWeb-Software-Services/FTP-Swift@v1.0.0
+  with:
+    # FTP server address
+    server: ftp.gb.stackcp.com
+    # FTP username
+    username: theliamforecast.com
+    # FTP password
+    password: {{ secrets.FTP_PASSWORD }}
+    remote-dir: public_html
