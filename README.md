@@ -27,6 +27,7 @@ Launched in June 2025, theliamforecast.com is an independent fan project, not af
 For media inquiries or to find out more about theliamforecast.com, please contact:
 
 **Henry Plumridge**
+
 **Email:** henryplumridge@hotmail.co.uk
 
 *Liam Gallagher definitely hasn’t commented on the website.
