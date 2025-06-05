@@ -1,0 +1,281 @@
+@import "tailwindcss";
+@font-face {
+  font-family: "madabold";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/mada-bold.ttf") format("ttf"),
+    url('/fonts/mada-bold.woff2') format('woff2'),
+    url('/fonts/mada-bold.woff') format('woff');
+}
+@theme {
+  --color-oasis: #a1caf2;
+  --color-oasishover: #bddaf6;
+  --text-default: 0.95rem;
+  --font-default:
+    "Helvetica", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-weather:
+    "madabold", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --text-tiny: 0.525rem;
+}
+html {
+  @apply overflow-x-hidden;
+}
+body {
+  @apply bg-oasis font-default overflow-x-hidden max-h-dvh;
+}
+h1 {
+  @apply absolute -top-full opacity-0;
+}
+p {
+  @apply mb-3 md:mb-4 lg:mb-6 leading-[1.25] text-sm md:text-default md:leading-[1.35] max-w-11/12 mx-auto;
+}
+p.intro {
+  @apply text-sm md:text-base font-medium;
+}
+.mobIntro {
+  @apply bg-black text-white text-2xl md:text-4xl p-2 border-4 border-white ring-6 ring-black mb-8 mx-4 lowercase font-extrabold italic;
+}
+.mobIntro.hide {
+  @apply hidden md:block;
+}
+.oasis {
+  @apply w-dvw;
+}
+.row {
+  @apply grid grid-cols-1 grid-rows-2 md:grid-cols-2 md:grid-rows-1 gap-4 relative max-h-dvh h-dvh p-4 md:p-0;
+}
+.col {
+  @apply p-0 md:p-9 text-center h-full md:h-dvh flex flex-col justify-center relative;
+}
+.col.animations {
+  @apply px-0 md:px-9 py-0 text-center h-full md:h-dvh flex flex-col justify-end relative border-2 md:border-0 rounded-xl overflow-hidden;
+}
+.weather,
+.allsounds {
+  @apply p-3 md:p-12 text-center flex flex-col justify-between absolute bg-white w-full md:w-11/12 -right-[110%] top-0 md:top-4 bottom-0 md:bottom-4 rounded-xl md:rounded-4xl transition-all duration-500 ease-in-out shadow-md;
+}
+.allsounds {
+  @apply justify-evenly;
+}
+.weather.open {
+  @apply left-0 md:left-auto right-0 md:right-5 top-0 md:top-5 bottom-0 md:bottom-5 transition-all duration-700 ease-in-out;
+}
+.allsounds.open {
+  @apply right-0 md:right-5 top-0 md:top-5 bottom-0 md:bottom-5 z-[30] transition-all duration-700 ease-in-out;
+}
+.weather h2 {
+  @apply text-2xl md:text-5xl font-extrabold border-t text-right uppercase relative font-weather break-all;
+}
+.weather h2.temperature {
+  @apply text-5xl md:text-7xl font-extrabold border-t text-right uppercase relative font-weather break-all;
+}
+.weather h2 div {
+  @apply text-sm lg:text-xl font-normal block normal-case;
+}
+.weather h2 span {
+  @apply text-sm font-normal block uppercase absolute top-0 left-0 text-left;
+}
+.weather .buttons,
+.allsounds .buttons {
+  @apply grid grid-cols-2 gap-4;
+}
+.allsounds .buttons {
+  @apply gap-2 md:gap-4;
+}
+.buttons {
+  @apply auto-rows-[minmax(0,3fr)] md:auto-rows-[minmax(0,2fr)];
+}
+.weather .buttons button,
+.allsounds button {
+  @apply border-2 rounded-lg w-full px-2 py-1 text-base lg:text-2xl font-weather font-extrabold mb-0 uppercase cursor-pointer;
+}
+.allsounds button {
+  @apply max-w-fit px-2 py-1;
+}
+button:not("#back"),
+a.safe {
+  @apply border-2 rounded-lg w-full px-2 py-1 text-base lg:text-2xl font-weather font-extrabold mb-0 uppercase cursor-pointer border-black border-2 hover:border-oasis focus:border-oasis;
+}
+#apiCheck {
+  @apply px-4 py-2;
+}
+#apiCheck:empty {
+  @apply !p-0;
+}
+div.success,
+div.error {
+  @apply p-2 mb-2 border-2 border-black rounded-md flex items-center justify-between;
+}
+div.success {
+  @apply bg-green-200;
+}
+div.error {
+  @apply bg-red-200;
+}
+div.success:last-child,
+div.error:last-child {
+  @apply mb-0;
+}
+#reverse {
+  @apply block;
+}
+.allsounds .buttons button {
+  @apply w-full max-w-full !text-xs leading-[1.1];
+}
+.item {
+  @apply relative;
+}
+.animations .item {
+  @apply w-full h-full;
+}
+.animations .item img {
+  @apply absolute block left-5/12 -translate-x-7/12 z-2 h-[400px] md:h-10/12 w-auto md:max-h-[750px] -bottom-32 md:-bottom-2;
+}
+.item img.title {
+  @apply block mx-auto mb-1 md:mb-4 lg:mb-6 max-w-7/12 md:max-w-10/12;
+}
+.item img.title.hide {
+  @apply hidden;
+}
+
+.lyric {
+  @apply absolute bottom-4 md:bottom-24 left-1/2 -translate-x-1/2 p-4 text-xl md:text-3xl lg:text-4xl font-extrabold shadow-md rounded-xl border opacity-0 scale-0 transition-all duration-500 ease-in-out font-weather w-0;
+}
+.lyric.show {
+  @apply bg-white z-[20] opacity-100 scale-100 transition-all duration-700 ease-in-out w-fit;
+}
+#back {
+  @apply absolute top-4 left-4 bg-white text-base md:text-2xl font-extrabold rounded-xl border px-3 py-1.5 cursor-pointer opacity-0 z-[20] transition-opacity duration-500 ease-in-out shadow-md font-weather;
+}
+#back.show {
+  @apply opacity-100 transition-opacity duration-500 ease-in-out;
+}
+canvas {
+  @apply absolute aspect-square w-7/12 z-0 -top-4 -right-4 transition-opacity duration-700 ease-in-out;
+}
+canvas.hide {
+  @apply opacity-0 transition-opacity duration-700 ease-in-out;
+}
+audio {
+  @apply opacity-0 scale-0 hidden invisible;
+}
+
+/* Dropdown Component */
+.dropdown {
+  @apply relative w-full max-w-[250px] mx-auto mb-2 md:mb-4 lg:mb-6;
+}
+
+.dropdown-toggle {
+  @apply bg-oasis w-full border-2 rounded-md px-4 py-2 flex items-center justify-between cursor-pointer;
+}
+
+.dropdown-toggle.active {
+  @apply border-2;
+}
+
+.dropdown-toggle .arrow {
+  @apply transition-all duration-500 ease-in-out;
+}
+
+.dropdown-toggle.active .arrow {
+  @apply rotate-180;
+}
+
+.dropdown-menu {
+  @apply absolute border-2 -top-[110px] md:top-full left-0 w-full bg-oasis rounded-md opacity-0 translate-y-2 pointer-events-none transition-all duration-500 ease-in-out z-10 max-h-[220px] overflow-y-auto shadow-lg p-2;
+}
+
+.dropdown-menu.show {
+  @apply opacity-100 translate-y-[2px] pointer-events-auto;
+}
+
+.dropdown-item {
+  @apply px-4 py-2 cursor-pointer rounded-md transition-all duration-500 ease-in-out;
+}
+
+.dropdown-item:hover {
+  @apply bg-oasishover;
+}
+
+.dropdown-item:last-child {
+  @apply rounded-b-md;
+}
+table {
+  @apply table-auto w-full;
+}
+table.buttonTable {
+  @apply !table-fixed w-full;
+}
+table td,
+table th {
+  @apply px-4 py-2;
+}
+table tr {
+  @apply border-b-2 border-black border-oasishover;
+}
+table tr:last-child {
+  @apply border-none;
+}
+table th {
+  @apply font-bold text-left text-lg;
+}
+.alert {
+  @apply w-full max-w-10/12 md:max-w-8/12 mx-auto my-6 bg-red-300 border-2 rounded-lg p-6 text-center;
+}
+.alert h2 {
+  @apply text-2xl font-extrabold;
+}
+.danger,
+.safe {
+  @apply text-2xl text-white !border-2 !rounded !px-4 !py-2 text-center font-extrabold uppercase;
+}
+.danger {
+  @apply bg-red-800;
+}
+.safe {
+  @apply bg-green-800;
+}
+input[type="text"],
+input[type="date"],
+input[type="password"],
+select {
+  @apply border-2 rounded-lg bg-white text-black px-1 py-2 w-full block appearance-none;
+}
+select {
+}
+table a {
+  @apply underline font-bold flex gap-2;
+}
+a.button {
+  @apply no-underline font-bold flex gap-2 px-4 py-2 justify-center items-center border-2 rounded-md;
+}
+.invalid-feedback {
+  @apply text-sm text-red-700;
+}
+.is-invalid {
+  @apply border-red-700 bg-red-300;
+}
+.login {
+  @apply border-2 rounded-lg max-w-96 w-full mx-auto my-12 p-4;
+}
+.loginButton {
+  @apply w-full bg-white mt-6;
+}
+.form-group {
+  @apply flex gap-4 items-center;
+}
+.wrap {
+  @apply p-4 border-2 rounded-lg w-11/12 mx-auto my-12;
+}
+.wrap.narrow {
+  @apply w-6/12 my-12;
+}
+.select {
+  @apply relative;
+}
+.select svg {
+  @apply absolute top-1/2 right-4 -translate-y-1/2;
+}
