@@ -78,7 +78,7 @@
                             $sql = "SELECT locations.name, locations.country, locations.latitude, locations.longitude, dates.date, dates.code, dates.temperature
 						FROM locations
 						INNER JOIN dates ON locations.locationID = dates.locationID
-						WHERE dates.date < DATE_ADD(CURDATE(), INTERVAL 5 WEEK) ORDER BY dates.date ASC";
+						WHERE dates.date < DATE_ADD(CURDATE(), INTERVAL 2 WEEK) ORDER BY dates.date ASC";
                             $result = mysqli_query($conn, $sql);
                             if (mysqli_num_rows($result) > 0) {
                                 while ($row = mysqli_fetch_assoc($result)) {
@@ -187,8 +187,7 @@
                                         ": " .
                                         $row["name"] .
                                         " - " .
-                                        date_format($date, "jS F Y") .
-                                        "<br><small>(WEATHER DEMO)</small></div>";
+                                        date_format($date, "jS F Y") . "</div>";
                                 }
                             } else {
                                 echo "<div class='dropdown-disabled'>No gigs are within the next 2 weeks - please try later</div>";
