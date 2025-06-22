@@ -28,8 +28,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="The Liam Forecast" />
     <link rel="manifest" href="/site.webmanifest" />
-    <meta name="description" content="So you've bagged yourself a ticket to the Oasis reunion tour this summer? MEGA. Built by https://duwe.co.uk" />
-    <meta property="og:description" content="So you've bagged yourself a ticket to the Oasis reunion tour this summer? MEGA. Built by https://duwe.co.uk" />
+    <meta name="author" content="https://duwe.co.uk">
+    <meta name="description" content="So you've bagged yourself a ticket to the Oasis reunion tour this summer? MEGA. But will it rain or sheeeeiiine? Built by https://duwe.co.uk" />
+    <meta property="og:description" content="So you've bagged yourself a ticket to the Oasis reunion tour this summer? MEGA. But will it rain or sheeeeiiine? Built by https://duwe.co.uk" />
     <meta property="og:locale" content="en_GB" />
     <meta property="og:site_name" content="The Liam Forecast" />
     <meta property="og:title" content="The Liam Forecast" />
