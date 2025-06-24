@@ -62,7 +62,7 @@
                         ", Weather Code: " .
                         $code .
                         ", ID: " .
-                        $dateID;
+                        $dateID . "<br>";
                 }
             }
             $conn->close();

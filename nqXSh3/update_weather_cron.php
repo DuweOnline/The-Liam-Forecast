@@ -15,7 +15,7 @@ $sql =
     $dateID;
 
 if ($conn->query($sql) === true) {
-    echo "Weather updated successfully";
+    echo "Weather updated successfully: ";
 } else {
     echo "Error updating weather: " . $conn->error . "";
 }
