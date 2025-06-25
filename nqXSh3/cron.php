@@ -1,4 +1,4 @@
-            <?php
+ <?php
             $servername = "sdb-60.hosting.stackcp.net";
             $username = "oasisweather-3530323502e9";
             $password = "N0@x£*E5B[q~";
@@ -12,7 +12,7 @@
                 die("Connection failed: " . mysqli_connect_error());
             }
             $conn->set_charset("utf8mb4");
-            $sql = "SELECT locations.latitude, locations.longitude, dates.date, dates.dateID
+            $sql = "SELECT locations.name, locations.country, locations.latitude, locations.longitude, dates.date, dates.dateID
         FROM locations
         INNER JOIN dates ON locations.locationID = dates.locationID
         WHERE dates.date < DATE_ADD(CURDATE(), INTERVAL 2 WEEK) ORDER BY dates.date ASC";
@@ -40,6 +40,9 @@
                     $temperature =
                         $writeable["daily"]["apparent_temperature_max"][0];
                     $dateID = $row["dateID"];
+                    $name = $row["name"];
+                    $country = $row["country"];
+                    $gigdate = $row["date"];
                     $cURLConnection = curl_init();
 
                     curl_setopt(
@@ -56,13 +59,13 @@
 
                     $phoneList = curl_exec($cURLConnection);
                     curl_close($cURLConnection);
-                    echo $phoneList .
-                        "Temperature: " .
-                        $temperature .
-                        ", Weather Code: " .
-                        $code .
-                        ", ID: " .
-                        $dateID . "<br>";
+                    echo $phoneList . PHP_EOL .
+                        "Location: " . $name . ", " . $country . PHP_EOL .
+                        "Date: " . $gigdate . PHP_EOL .
+                        "Temperature: " . $temperature . PHP_EOL .
+                        "Weather Code: " . $code . PHP_EOL .
+                        "ID: " . $dateID . 
+                        PHP_EOL;
                 }
             }
             $conn->close();
