@@ -64,7 +64,7 @@
                         "Date: " . $gigdate . PHP_EOL .
                         "Temperature: " . $temperature . PHP_EOL .
                         "Weather Code: " . $code . PHP_EOL .
-                        "ID: " . $dateID . 
+                        "ID: " . $dateID . PHP_EOL .
                         PHP_EOL;
                 }
             }
