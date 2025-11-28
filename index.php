@@ -21,6 +21,7 @@
     <!-- End Google Tag Manager -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#a1caf2">
     <title>The Liam Forecast | Find the weather for your Oasis gig</title>
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
