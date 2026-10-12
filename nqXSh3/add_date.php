@@ -1,34 +1,26 @@
 <?php
-session_start();
-if (!isset($_SESSION["account_loggedin"])) {
-    header("Location: index.php");
-    exit();
-}
-require_once "../config.php";
+require_once __DIR__ . "/admin.php";
+$date = "";
+$date_err = "";
+$message = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $input_date = $_REQUEST["date"];
-    if (empty($input_date)) {
+    csrf_check();
+    $date = trim($_POST["date"] ?? "");
+    if (!valid_date($date)) {
         $date_err = "Please enter a date.";
     } else {
-        $date = $input_date;
-    }
-    if (empty($date_err)) {
-        $sql = "INSERT INTO dates (date) VALUE ('" . $date . "')";
-
-        if ($conn->query($sql) === true) {
-            $success = "<tr><td colspan='2'>New date added</td></tr>";
-        } else {
-            $success =
-                "<tr><td colspan='2'>Error: " .
-                $sql .
-                "<br>" .
-                $conn->error .
-                "</td></tr>";
+        try {
+            $stmt = $conn->prepare("INSERT INTO dates (date) VALUES (?)");
+            $stmt->bind_param("s", $date);
+            $stmt->execute();
+            $stmt->close();
+            $message = "New date added";
+        } catch (mysqli_sql_exception $e) {
+            $message = "Error: " . $e->getMessage();
         }
-
-        $conn->close();
     }
 }
+$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en-GB">
@@ -45,34 +37,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	<link rel="stylesheet" href="/css/oasis.css" />
   </head>
 <body>
-	<div class="oasis">
-    <form action="<?php echo htmlspecialchars(
-        $_SERVER["PHP_SELF"]
-    ); ?>" method="post">
+	<main class="oasis">
+    <form action="add_date.php" method="post">
+    <?php echo csrf_field(); ?>
     <div class="wrap">
 		<table>
       <thead>
-        <tr><th>Add Date</th><th></th></tr>
+        <tr><th scope="col">Add Date</th><th scope="col"><span class="visually-hidden">Action</span></th></tr>
       </thead>
     <tbody>
-      <tr><td><input type="date" id="date" name="date"  class="<?php echo !empty(
-          $date_err
-      )
-          ? "is-invalid"
-          : ""; ?>" value="<?php echo $_REQUEST[
-    "date"
-]; ?>"><span class="invalid-feedback"><?php echo $date_err; ?></span></td><td><button type="submit" value="add" class="safe">Add</button></td></tr>
-      <?php echo $success; ?>
+      <tr><td><label for="date" class="visually-hidden">Gig date</label><input type="date" id="date" name="date" required class="<?php echo $date_err !== "" ? "is-invalid" : ""; ?>" value="<?php echo e($date); ?>"<?php echo error_attrs($date_err, "date-error"); ?>><span class="invalid-feedback" id="date-error"><?php echo e($date_err); ?></span></td><td><button type="submit" class="safe">Add</button></td></tr>
+      <?php if ($message !== "") { ?>
+      <tr><td colspan="2" role="alert"><?php echo e($message); ?></td></tr>
+      <?php } ?>
       <tr>
-        <td colspan="2"><a href="index.php"><svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+        <td colspan="2"><a href="index.php"><svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12l4-4m-4 4 4 4"/>
           </svg>
  Back to list</a></td>
       </tr>
     </tbody>
-    </table> 
+    </table>
     </div>
 			</form>
-	</div>
+	</main>
 </body>
 </html>

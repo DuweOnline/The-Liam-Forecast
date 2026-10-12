@@ -66,16 +66,16 @@ p.intro {
 .allsounds.open {
   @apply right-0 md:right-5 top-0 md:top-5 bottom-0 md:bottom-5 z-[30] transition-all duration-700 ease-in-out;
 }
-.weather h2 {
+.weather .stat {
   @apply text-2xl md:text-5xl font-extrabold border-t text-right uppercase relative font-weather break-all;
 }
-.weather h2.temperature {
+.weather .stat.temperature {
   @apply text-5xl md:text-7xl font-extrabold border-t text-right uppercase relative font-weather break-all;
 }
-.weather h2 div {
+.weather .stat-detail {
   @apply text-sm lg:text-xl font-normal block normal-case;
 }
-.weather h2 span {
+.weather .stat dt {
   @apply text-sm font-normal block uppercase absolute top-0 left-0 text-left;
 }
 .weather .buttons,
@@ -253,7 +253,7 @@ a.button {
   @apply no-underline font-bold flex gap-2 px-4 py-2 justify-center items-center border-2 rounded-md;
 }
 .invalid-feedback {
-  @apply text-sm text-red-700;
+  @apply text-sm text-red-800;
 }
 .is-invalid {
   @apply border-red-700 bg-red-300;
@@ -278,4 +278,138 @@ a.button {
 }
 .select svg {
   @apply absolute top-1/2 right-4 -translate-y-1/2;
+}
+
+/* Searchable gig picker */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.dropdown-toggle:focus-within {
+  outline: 3px solid #000;
+  outline-offset: 2px;
+}
+.dropdown .dropdown-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.dropdown .dropdown-input:focus {
+  outline: none;
+}
+.dropdown .dropdown-input::placeholder {
+  color: #000;
+  opacity: 1;
+}
+.dropdown-button {
+  display: flex;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin-left: calc(var(--spacing) * 2);
+  color: inherit;
+  cursor: pointer;
+}
+.dropdown-item[aria-selected="true"] {
+  font-weight: 700;
+}
+.dropdown-item.is-active {
+  background-color: var(--color-oasishover);
+  outline: 2px solid #000;
+  outline-offset: -2px;
+}
+.dropdown .dropdown-empty,
+.dropdown .dropdown-disabled {
+  max-width: none;
+  margin: 0;
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+}
+.dropdown .dropdown-disabled {
+  border: 2px solid;
+  border-radius: var(--radius-md);
+}
+/* On small screens the list opens upwards - keep it fully above the search box so typed text stays visible */
+@media (max-width: 47.99rem) {
+  .dropdown .dropdown-menu {
+    top: auto;
+    bottom: calc(100% + 4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-menu,
+  .dropdown-item,
+  .dropdown-toggle .arrow,
+  .weather,
+  .allsounds,
+  .lyric,
+  #back,
+  canvas {
+    transition: none !important;
+  }
+}
+
+/* Accessibility additions - plain CSS so it is identical in tailwind/input.css and css/oasis.css */
+p.intro-text {
+  max-width: none;
+  margin-bottom: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.item small {
+  font-size: max(0.75rem, 80%);
+}
+.weather .forecast {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 4);
+  margin: 0;
+  padding-bottom: calc(var(--spacing) * 4);
+}
+.weather .stat dd {
+  margin: 0;
+}
+/* Short viewports (zoomed-in browsers, landscape phones): let the page grow and scroll instead of clipping content */
+@media (max-height: 40rem) {
+  body,
+  .row,
+  .col,
+  .col.animations {
+    height: auto;
+    max-height: none;
+  }
+  .row {
+    min-height: 100dvh;
+  }
+  .col.animations {
+    min-height: 24rem;
+  }
+}
+.buttonTable button.button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--spacing) * 2);
+  border: 2px solid;
+  border-radius: var(--radius-md);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  font-weight: 700;
+  cursor: pointer;
 }

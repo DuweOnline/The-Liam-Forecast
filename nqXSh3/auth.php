@@ -1,67 +1,103 @@
 <?php
-// Start the session
-session_start();
-// Change the below variables to reflect your MySQL database details
-$DATABASE_HOST = "sdb-60.hosting.stackcp.net";
-$DATABASE_USER = "oasisweather-3530323502e9";
-$DATABASE_PASS = "N0@x£*E5B[q~";
-$DATABASE_NAME = "oasisweather-3530323502e9";
-// Try and connect using the info above
-$con = mysqli_connect(
-    $DATABASE_HOST,
-    $DATABASE_USER,
-    $DATABASE_PASS,
-    $DATABASE_NAME
-);
-// Check for connection errors
-if (mysqli_connect_errno()) {
-    // If there is an error with the connection, stop the script and display the error
-    exit("Failed to connect to MySQL: " . mysqli_connect_error());
+require_once __DIR__ . "/session.php";
+require_once __DIR__ . "/../config.php";
+
+// Brute-force protection: failed logins are recorded and limited per IP address and per username
+const LOGIN_WINDOW_MINUTES = 15;
+const LOGIN_MAX_PER_IP = 5;
+const LOGIN_MAX_PER_USERNAME = 20;
+
+function login_fail(string $error): void
+{
+    $_SESSION["login_error"] = $error;
+    header("Location: index.php");
+    exit();
 }
-if (!isset($_POST["username"], $_POST["password"])) {
-    // Could not get the data that should have been sent
-    exit("Please fill both the username and password fields!");
+
+$username = (string) ($_POST["username"] ?? "");
+$password = (string) ($_POST["password"] ?? "");
+if ($username === "" || $password === "") {
+    login_fail("Please fill in both the username and password fields.");
 }
-if (
-    $stmt = $con->prepare(
-        "SELECT id, password FROM accounts WHERE username = ?"
-    )
-) {
-    // Bind parameters (s = string, i = int, b = blob, etc), in our case the username is a string so we use "s"
-    $stmt->bind_param("s", $_POST["username"]);
+$ip = (string) ($_SERVER["REMOTE_ADDR"] ?? "");
+
+$throttling = true;
+try {
+    $conn->query(
+        "CREATE TABLE IF NOT EXISTS login_attempts (
+            id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            ip VARCHAR(45) NOT NULL,
+            username VARCHAR(255) NOT NULL,
+            attempted_at DATETIME NOT NULL,
+            KEY ip_time (ip, attempted_at),
+            KEY username_time (username, attempted_at)
+        ) CHARACTER SET utf8mb4"
+    );
+    $conn->query("DELETE FROM login_attempts WHERE attempted_at < NOW() - INTERVAL 1 DAY");
+
+    $stmt = $conn->prepare(
+        "SELECT COALESCE(SUM(ip = ?), 0), COALESCE(SUM(username = ?), 0)
+        FROM login_attempts
+        WHERE attempted_at > NOW() - INTERVAL " . LOGIN_WINDOW_MINUTES . " MINUTE"
+    );
+    $stmt->bind_param("ss", $ip, $username);
     $stmt->execute();
-    // Store the result so we can check if the account exists in the database
-    $stmt->store_result();
-
-    if ($stmt->num_rows > 0) {
-        // Account exists, so bind the results to variables
-        $stmt->bind_result($id, $password);
-        $stmt->fetch();
-        // Note: remember to use password_hash in your registration file to store the hashed passwords
-        if (password_verify($_POST["password"], $password)) {
-            // Password is correct! User has logged in!
-            // Regenerate the session ID to prevent session fixation attacks
-            session_regenerate_id();
-            // Declare session variables (they basically act like cookies but the data is remembered on the server)
-            $_SESSION["account_loggedin"] = true;
-            $_SESSION["account_name"] = $_POST["username"];
-            $_SESSION["account_id"] = $id;
-            // Output success message
-            echo "Welcome back, " .
-                htmlspecialchars($_SESSION["account_name"], ENT_QUOTES) .
-                "!";
-            header("Location: list.php");
-            exit();
-        } else {
-            // Incorrect password
-            echo "Incorrect username and/or password!";
-        }
-    } else {
-        // Incorrect username
-        echo "Incorrect username and/or password!";
-    }
-
-    // Close the prepared statement
+    $stmt->bind_result($ipFailures, $usernameFailures);
+    $stmt->fetch();
     $stmt->close();
+
+    if ((int) $ipFailures >= LOGIN_MAX_PER_IP || (int) $usernameFailures >= LOGIN_MAX_PER_USERNAME) {
+        login_fail("Too many failed attempts. Please wait " . LOGIN_WINDOW_MINUTES . " minutes and try again.");
+    }
+} catch (mysqli_sql_exception $e) {
+    // Don't lock everyone out if the table can't be created - log it so it can be fixed
+    error_log("Login throttling unavailable: " . $e->getMessage());
+    $throttling = false;
 }
-?>
+
+$valid = false;
+$stmt = $conn->prepare("SELECT id, password FROM accounts WHERE username = ?");
+$stmt->bind_param("s", $username);
+$stmt->execute();
+$stmt->store_result();
+if ($stmt->num_rows > 0) {
+    $stmt->bind_result($id, $hash);
+    $stmt->fetch();
+    $valid = password_verify($password, $hash);
+}
+$stmt->close();
+
+if (!$valid) {
+    if ($throttling) {
+        try {
+            $stmt = $conn->prepare("INSERT INTO login_attempts (ip, username, attempted_at) VALUES (?, ?, NOW())");
+            $stmt->bind_param("ss", $ip, $username);
+            $stmt->execute();
+            $stmt->close();
+        } catch (mysqli_sql_exception $e) {
+            error_log("Could not record failed login: " . $e->getMessage());
+        }
+    }
+    login_fail("Incorrect username and/or password.");
+}
+
+if ($throttling) {
+    try {
+        $stmt = $conn->prepare("DELETE FROM login_attempts WHERE ip = ? OR username = ?");
+        $stmt->bind_param("ss", $ip, $username);
+        $stmt->execute();
+        $stmt->close();
+    } catch (mysqli_sql_exception $e) {
+        error_log("Could not clear failed logins: " . $e->getMessage());
+    }
+}
+$conn->close();
+
+// Regenerate the session ID to prevent session fixation attacks
+session_regenerate_id(true);
+unset($_SESSION["login_error"]);
+$_SESSION["account_loggedin"] = true;
+$_SESSION["account_name"] = $username;
+$_SESSION["account_id"] = $id;
+header("Location: list.php");
+exit();

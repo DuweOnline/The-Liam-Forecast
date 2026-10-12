@@ -2,7 +2,6 @@ User-agent: *
 Disallow: 
 Crawl-delay: 120
 Disallow: /cgi-bin/
-Disallow: /nqXSh3/
 Disallow: /css/
 Disallow: /js/
 Disallow: /lottie/

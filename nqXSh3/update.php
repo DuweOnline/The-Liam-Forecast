@@ -1,10 +1,36 @@
 <?php
-session_start();
-if (!isset($_SESSION["account_loggedin"])) {
-    header("Location: index.php");
-    exit();
+require_once __DIR__ . "/admin.php";
+$id = (int) ($_GET["id"] ?? 0);
+$date_err = "";
+$message = "";
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    csrf_check();
+    $date = trim($_POST["date"] ?? "");
+    if (!valid_date($date)) {
+        $date_err = "Please enter a valid date.";
+    } else {
+        try {
+            $stmt = $conn->prepare("UPDATE dates SET date = ? WHERE dateID = ?");
+            $stmt->bind_param("si", $date, $id);
+            $stmt->execute();
+            $stmt->close();
+            $message = "Date updated";
+        } catch (mysqli_sql_exception $e) {
+            $message = "Error: " . $e->getMessage();
+        }
+    }
 }
-require_once "../config.php";
+
+// $id is cast to int above, so it is safe to use directly
+$gig = $conn
+    ->query(
+        "SELECT dates.dateID, locations.name, locations.country, dates.date
+        FROM locations
+        INNER JOIN dates ON locations.locationID = dates.locationID
+        WHERE dates.dateID = " . $id
+    )
+    ->fetch_assoc();
+$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en-GB">
@@ -21,46 +47,35 @@ require_once "../config.php";
 	<link rel="stylesheet" href="/css/oasis.css" />
   </head>
 <body>
-	<div class="oasis">
-		<form action="<?php echo htmlspecialchars(
-      basename($_SERVER["REQUEST_URI"])
-  ); ?>" method="post">
+	<main class="oasis">
+		<form action="update.php?id=<?php echo $id; ?>" method="post">
+		<?php echo csrf_field(); ?>
   <div class="wrap">
 		<table>
 			<thead>
 			<tr>
-			  <th>Date</th>
-			  <th>Location</th>
-		  <th></th>
+			  <th scope="col">Date</th>
+			  <th scope="col">Location</th>
+		  <th scope="col"><span class="visually-hidden">Action</span></th>
 			</tr>
 			</thead>
 		  <tbody>
+			  <?php if ($gig) { ?>
 			  <tr>
-				  <?php
-      $sql =
-          "SELECT dates.dateID, locations.name, locations.country, locations.latitude, locations.longitude, dates.date, dates.code, dates.temperature
-									  FROM locations
-									  INNER JOIN dates ON locations.locationID = dates.locationID
-									  WHERE dates.dateID = " . $_GET["id"];
-      $result = mysqli_query($conn, $sql);
-      if (mysqli_num_rows($result) > 0) {
-          while ($row = mysqli_fetch_assoc($result)) {
-              $date = date_create($row["date"]);
-              echo "<td><input type='date' value='" .
-                  $row["date"] .
-                  "' id='date' name='date'></td><td>" .
-                  $row["name"] .
-                  "</td>";
-          }
-      }
-      mysqli_close($conn);
-      ?>
-	  <td>
-		  <button type="submit" class="safe">UPDATE</button>
-	  </td>
+				  <td><label for="date" class="visually-hidden">Gig date</label><input type="date" value="<?php echo e($gig["date"]); ?>" id="date" name="date" required<?php echo error_attrs($date_err, "date-error"); ?>><span class="invalid-feedback" id="date-error"><?php echo e($date_err); ?></span></td>
+				  <td><?php echo e($gig["name"] . ", " . $gig["country"]); ?></td>
+				  <td>
+					  <button type="submit" class="safe">UPDATE</button>
+				  </td>
 			  </tr>
+			  <?php } else { ?>
+			  <tr><td colspan="3" role="alert">Gig not found</td></tr>
+			  <?php } ?>
+			  <?php if ($message !== "") { ?>
+			  <tr><td colspan="3" role="alert"><?php echo e($message); ?></td></tr>
+			  <?php } ?>
 			  <tr>
-					  <td colspan="3"><a href="index.php"><svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+					  <td colspan="3"><a href="index.php"><svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
 						  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12l4-4m-4 4 4 4"/>
 						</svg>
 			   Back to list</a></td>
@@ -69,6 +84,6 @@ require_once "../config.php";
 		</table>
   </div>
 		</form>
-	</div>
+	</main>
 </body>
 </html>

@@ -1,45 +1,31 @@
 <?php
-session_start();
-if (!isset($_SESSION["account_loggedin"])) {
-    header("Location: index.php");
-    exit();
-}
-require_once "../config.php";
+require_once __DIR__ . "/admin.php";
+$date_err = $location_err = $message = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $input_date = $_REQUEST["date"];
-    if (empty($input_date)) {
-        $date_err = "Please enter a date.";
-    } else {
-        $date = $input_date;
+    csrf_check();
+    $dateID = (int) ($_POST["date"] ?? 0);
+    if ($dateID <= 0) {
+        $date_err = "Please pick a date.";
     }
-    $input_location = $_REQUEST["location"];
-    if (empty($input_location)) {
-        $location_err = "Please enter a location.";
-    } else {
-        $location = $input_location;
+    $locationID = (int) ($_POST["location"] ?? 0);
+    if ($locationID <= 0) {
+        $location_err = "Please pick a location.";
     }
-    if (empty($date_err) && empty($location_err)) {
-        $sql =
-            "UPDATE dates SET locationID='" .
-            $location .
-            "' WHERE dateID='" .
-            $date .
-            "'";
-
-        if ($conn->query($sql) === true) {
-            $success = "<tr><td colspan='2'>New date added</td></tr>";
-        } else {
-            $success =
-                "<tr><td colspan='2'>Error: " .
-                $sql .
-                "<br>" .
-                $conn->error .
-                "</td></tr>";
+    if ($date_err === "" && $location_err === "") {
+        try {
+            $stmt = $conn->prepare("UPDATE dates SET locationID = ? WHERE dateID = ?");
+            $stmt->bind_param("ii", $locationID, $dateID);
+            $stmt->execute();
+            $message = $stmt->affected_rows > 0 ? "Date linked to location" : "That date could not be found";
+            $stmt->close();
+        } catch (mysqli_sql_exception $e) {
+            $message = "Error: " . $e->getMessage();
         }
-
-        $conn->close();
     }
 }
+$dates = fetch_rows($conn->query("SELECT dateID, date FROM dates WHERE locationID IS NULL ORDER BY date ASC"));
+$locations = fetch_rows($conn->query("SELECT locationID, name, country FROM locations"));
+$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en-GB">
@@ -56,78 +42,69 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	<link rel="stylesheet" href="/css/oasis.css" />
   </head>
 <body>
-	<div class="oasis">
-    <form action="<?php echo htmlspecialchars(
-        $_SERVER["PHP_SELF"]
-    ); ?>" method="post">
+	<main class="oasis">
+    <form action="link_date.php" method="post">
+    <?php echo csrf_field(); ?>
     <div class="wrap">
 		<table>
       <thead>
-        <tr><th>Date</th><th>Location</th><th></th></tr>
+        <tr><th scope="col">Date</th><th scope="col">Location</th><th scope="col"><span class="visually-hidden">Action</span></th></tr>
       </thead>
     <tbody>
       <tr>
-        <td><div class="select"><select id="date" name="date">
-        <option selected="selected" disabled="disabled">Pick Date</option>
+        <td><label for="date" class="visually-hidden">Date</label><div class="select"><select id="date" name="date" required<?php echo error_attrs($date_err, "date-error"); ?>>
+        <option value="" selected="selected" disabled="disabled">Pick Date</option>
       <?php
-      $sql =
-          "SELECT dateID, date, locationID FROM dates WHERE locationID IS NULL";
-      $result = $conn->query($sql);
-      if ($result->num_rows > 0) {
-          // output data of each row
-          while ($row = $result->fetch_assoc()) {
-              $date = date_create($row["date"]);
+      if (count($dates) > 0) {
+          foreach ($dates as $row) {
               echo "<option value='" .
-                  $row["dateID"] .
+                  (int) $row["dateID"] .
                   "'>" .
-                  date_format($date, "jS F, Y") .
+                  e(date_format(date_create($row["date"]), "jS F, Y")) .
                   "</option>";
           }
       } else {
-          echo "<option disabled='disabled'>No Dates available</option>";
+          echo "<option value='' disabled='disabled'>No Dates available</option>";
       }
       ?>
-      </select><svg class="-mr-1 size-5 text-black" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+      </select><svg class="-mr-1 size-5 text-black" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false" data-slot="icon">
         <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-      </svg></div><span class="invalid-feedback"><?php echo $date_err; ?></span></td>
-        <td><div class="select"><select id="location" name="location">
-      <option selected="selected" disabled="disabled">Pick Location</option>
+      </svg></div><span class="invalid-feedback" id="date-error"><?php echo e($date_err); ?></span></td>
+        <td><label for="location" class="visually-hidden">Location</label><div class="select"><select id="location" name="location" required<?php echo error_attrs($location_err, "location-error"); ?>>
+      <option value="" selected="selected" disabled="disabled">Pick Location</option>
       <?php
-      $sql2 = "SELECT locationID, name, country FROM locations";
-      $result = $conn->query($sql2);
-      if ($result->num_rows > 0) {
-          while ($row = $result->fetch_assoc()) {
+      if (count($locations) > 0) {
+          foreach ($locations as $row) {
               echo "<option value='" .
-                  $row["locationID"] .
+                  (int) $row["locationID"] .
                   "'>" .
-                  $row["name"] .
-                  ", " .
-                  $row["country"] .
+                  e($row["name"] . ", " . $row["country"]) .
                   "</option>";
           }
       } else {
-          echo "<option disabled='disabled'>No Locations available</option>";
+          echo "<option value='' disabled='disabled'>No Locations available</option>";
       }
-      $conn->close();
       ?>
-      </select><svg class="-mr-1 size-5 text-black" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+      </select><svg class="-mr-1 size-5 text-black" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false" data-slot="icon">
             <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-          </svg></div><span class="invalid-feedback"><?php echo $location_err; ?></span></td>
+          </svg></div><span class="invalid-feedback" id="location-error"><?php echo e($location_err); ?></span></td>
         <td><button type="submit" class="safe">LINK</button></td>
       </tr>
-      <?php echo $success; ?>
+      <?php if ($message !== "") { ?>
+      <tr><td colspan="3" role="alert"><?php echo e($message); ?></td></tr>
+      <?php } ?>
       <tr>
-              <td colspan="3"><a href="index.php"><svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+              <td colspan="3"><a href="index.php"><svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12l4-4m-4 4 4 4"/>
                 </svg>
        Back to list</a></td>
             </tr>
-            
+
     </tbody>
-    </table> 
+    </table>
     </div>
 			</form>
-	</div>
+	</main>
 
 </body>
 </html>
